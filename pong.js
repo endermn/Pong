@@ -61,14 +61,14 @@ function resetGame() {
 
 resetGame();
 
-let previousTime = 0;
-
 function getPaddleColor(powershotness) {
   return lerpColor(rgb("ffffff"), rgb("ff0000"), powershotness);
 }
 
+let previousTime = 0;
+
 function draw() {
-  setColor(rgb("303843"));
+  setColor(rgb("202833"));
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   setColor(getPaddleColor(leftPowershotness));
@@ -80,12 +80,6 @@ function draw() {
   ctx.beginPath();
   ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2, false);
   ctx.fill();
-  /*ctx.fillRect(
-    ballX - BALL_RADIUS,
-    ballY - BALL_RADIUS,
-    BALL_RADIUS * 2,
-    BALL_RADIUS * 2
-  );*/
 }
 
 function onFrame(time) {
@@ -117,7 +111,7 @@ function onFrame(time) {
     (ballY <= BALL_RADIUS && velocityY < 0) ||
     (ballY >= canvas.height - BALL_RADIUS && velocityY > 0)
   )
-    velocityY *= -1;
+    velocityY *= -1.48;
 
   if (
     ballX - BALL_RADIUS <= PADDLE_WIDTH &&
@@ -138,19 +132,17 @@ function onFrame(time) {
     rightPowershotness = 0;
   }
 
-  velocityX -= (deltaTime / 2000) * velocityX * velocityX * Math.sign(velocityX);
+  velocityX -= deltaTime / 2000 * velocityX * Math.abs(velocityX);
+  velocityY -= deltaTime / 2000 * velocityY * Math.abs(velocityY);
 
-  if (
-    (ballX <= BALL_RADIUS && velocityX < 0) ||
-    (ballX >= canvas.width - BALL_RADIUS && velocityX > 0)
-  )
+  if ((ballX <= 0 && velocityX < 0) || (ballX >= canvas.width && velocityX > 0))
     resetGame();
 
   draw();
   window.requestAnimationFrame(onFrame);
 }
 
-document.addEventListener("keydown", (e) => pressedKeys.add(e.code));
-document.addEventListener("keyup", (e) => pressedKeys.delete(e.code));
+document.addEventListener("keydown", e => pressedKeys.add(e.code));
+document.addEventListener("keyup", e => pressedKeys.delete(e.code));
 
 window.requestAnimationFrame(onFrame);
