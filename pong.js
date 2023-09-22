@@ -98,6 +98,7 @@ function draw() {
   ctx.beginPath();
   ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2, false);
   ctx.fill();
+
   ctx.font = "30px Arial";
   ctx.fillText(`${leftScore} : ${rightScore}`, 50, 50);
 }
@@ -107,18 +108,21 @@ function onFrame(time) {
   if (deltaTime > 500) deltaTime = 0;
   previousTime = time;
 
-  if (pressedKeys.has("ArrowLeft")) {
-    rightPowershotness += Math.min(deltaTime * 0.0005, 1);
-  } else {
-    if (pressedKeys.has("ArrowUp")) rightPaddleY -= deltaTime * PIXELS_PER_MS;
-    if (pressedKeys.has("ArrowDown")) rightPaddleY += deltaTime * PIXELS_PER_MS;
-  }
+  const oldLeftPaddleY = leftPaddleY;
+  const oldRightPaddleY = rightPaddleY;
 
   if (pressedKeys.has("KeyD")) {
     leftPowershotness += Math.min(deltaTime * 0.0005, 1);
   } else {
     if (pressedKeys.has("KeyW")) leftPaddleY -= deltaTime * PIXELS_PER_MS;
     if (pressedKeys.has("KeyS")) leftPaddleY += deltaTime * PIXELS_PER_MS;
+  }
+
+  if (pressedKeys.has("ArrowLeft")) {
+    rightPowershotness += Math.min(deltaTime * 0.0005, 1);
+  } else {
+    if (pressedKeys.has("ArrowUp")) rightPaddleY -= deltaTime * PIXELS_PER_MS;
+    if (pressedKeys.has("ArrowDown")) rightPaddleY += deltaTime * PIXELS_PER_MS;
   }
 
   leftPaddleY = Math.min(
@@ -147,6 +151,7 @@ function onFrame(time) {
     HIT_SOUND.volume = Math.min(Math.max(leftPowershotness, 0.1), 1);
     HIT_SOUND.play();
     velocityX = -velocityX + 0.5 + leftPowershotness * 0.5;
+    velocityY += Math.sign(leftPaddleY - oldLeftPaddleY) / 3;
     leftPowershotness = 0;
   }
   if (
@@ -158,16 +163,17 @@ function onFrame(time) {
     HIT_SOUND.volume = Math.min(Math.max(rightPowershotness, 0.1), 1);
     HIT_SOUND.play();
     velocityX = -velocityX - 0.5 - rightPowershotness * 0.5;
+    velocityY += Math.sign(rightPaddleY - oldRightPaddleY) / 3;
     rightPowershotness = 0;
   }
 
   velocityX -= (deltaTime / 2000) * velocityX * Math.abs(velocityX);
   velocityY -= (deltaTime / 2000) * velocityY * Math.abs(velocityY);
 
-  if (ballX <= 0 && velocityX < 0) {
+  if (ballX < 0) {
     rightScore++;
     resetGame();
-  } else if (ballX >= canvas.width && velocityX > 0) {
+  } else if (ballX > canvas.width) {
     leftScore++;
     resetGame();
   }
