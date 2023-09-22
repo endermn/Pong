@@ -111,7 +111,9 @@ function draw() {
 
   for (let i = 0; i < OLD_BALL_POSITION_COUNT; i++) {
     const positionIndex = (oldBallPositionIndex + i) % OLD_BALL_POSITION_COUNT;
-    setColor(lerpColor(rgb("202833"), rgb("ee8888"), (i + 1) / OLD_BALL_POSITION_COUNT));
+    setColor(
+      lerpColor(rgb("202833"), rgb("ee8888"), (i + 1) / OLD_BALL_POSITION_COUNT)
+    );
     fillCricle(oldBallPositions[positionIndex], BALL_RADIUS);
   }
   /*ctx.beginPath();
@@ -188,7 +190,7 @@ function onFrame(time) {
     HIT_SOUND.volume = Math.max(leftPowershotness, 0.1);
     HIT_SOUND.play();
     spin -= Math.sign(leftPaddleY - oldLeftPaddleY);
-    velocityX = -velocityX + 0.2 + leftPowershotness;
+    velocityX = -velocityX + 0.4 + leftPowershotness;
     leftPowershotness = 0;
   }
   if (
@@ -200,7 +202,7 @@ function onFrame(time) {
     HIT_SOUND.volume = Math.max(rightPowershotness, 0.1);
     HIT_SOUND.play();
     spin -= Math.sign(rightPaddleY - oldRightPaddleY);
-    velocityX = -velocityX - 0.2 - rightPowershotness;
+    velocityX = -velocityX - 0.4 - rightPowershotness;
     rightPowershotness = 0;
   }
 
