@@ -189,7 +189,7 @@ function onFrame(time) {
     HIT_SOUND.volume = Math.max(leftPowershotness, 0.1);
     HIT_SOUND.play();
     spin -= Math.sign(leftPaddleY - oldLeftPaddleY);
-    velocityX = -velocityX + 0.2 + leftPowershotness;
+    velocityX = -velocityX + 0.4 + leftPowershotness;
     leftPowershotness = 0;
   }
   if (
@@ -201,7 +201,7 @@ function onFrame(time) {
     HIT_SOUND.volume = Math.max(rightPowershotness, 0.1);
     HIT_SOUND.play();
     spin -= Math.sign(rightPaddleY - oldRightPaddleY);
-    velocityX = -velocityX - 0.2 - rightPowershotness;
+    velocityX = -velocityX - 0.4 - rightPowershotness;
     rightPowershotness = 0;
   }
 
