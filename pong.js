@@ -93,6 +93,7 @@ function draw() {
   ctx.beginPath();
   ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2, false);
   ctx.fill();
+
   ctx.font = "30px Arial";
   ctx.fillText(`${leftScore} : ${rightScore}`, 50, 50);
 }
@@ -155,10 +156,10 @@ function onFrame(time) {
   velocityX -= (deltaTime / 2000) * velocityX * Math.abs(velocityX);
   velocityY -= (deltaTime / 2000) * velocityY * Math.abs(velocityY);
 
-  if (ballX <= 0 && velocityX < 0) {
+  if (ballX < 0) {
     rightScore++;
     resetGame();
-  } else if (ballX >= canvas.width && velocityX > 0) {
+  } else if (ballX > canvas.width) {
     leftScore++;
     resetGame();
   }
