@@ -11,6 +11,9 @@ function zip(a, b) {
   return a.map((e, i) => [e, b[i]]);
 }
 
+const X = 0;
+const Y = 1;
+
 const R = 0;
 const G = 1;
 const B = 2;
@@ -37,6 +40,7 @@ const BALL_RADIUS = 14;
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 110;
 const HIT_SOUND = new Audio("hit_sound.wav");
+const OLD_BALL_POSITION_COUNT = 20;
 
 let leftPaddleY;
 let rightPaddleY;
@@ -55,6 +59,9 @@ let rightScore = 0;
 let oldBallX = ballX;
 let oldBallY;
 let spin;
+
+let oldBallPositions = Array(OLD_BALL_POSITION_COUNT).fill([ballX, ballY]);
+let oldBallPositionIndex = 0;
 
 function resetGame() {
   canvas.width = window.innerWidth;
@@ -82,8 +89,10 @@ function getPaddleColor(powershotness) {
 
 let previousTime = 0;
 
-function pause() {
-  while (true) {}
+function fillCricle(pos, radius) {
+  ctx.beginPath();
+  ctx.arc(pos[X], pos[Y], radius, 0, Math.PI * 2, false);
+  ctx.fill();
 }
 
 function draw() {
@@ -100,8 +109,12 @@ function draw() {
     PADDLE_HEIGHT
   );
 
-  setColor(rgb("888888"));
-  ctx.beginPath();
+  for (let i = 0; i < OLD_BALL_POSITION_COUNT; i++) {
+    const positionIndex = (oldBallPositionIndex + i) % OLD_BALL_POSITION_COUNT;
+    setColor(lerpColor(rgb("202833"), rgb("ee8888"), (i + 1) / OLD_BALL_POSITION_COUNT));
+    fillCricle(oldBallPositions[positionIndex], BALL_RADIUS);
+  }
+  /*ctx.beginPath();
   ctx.arc(
     oldBallX - velocityX * 20,
     oldBallY - velocityY * 20,
@@ -110,11 +123,10 @@ function draw() {
     Math.PI * 2,
     false
   );
-  ctx.fill();
+  ctx.fill();*/
+
   setColor(rgb("ffffff"));
-  ctx.beginPath();
-  ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2, false);
-  ctx.fill();
+  fillCricle([ballX, ballY], BALL_RADIUS);
 
   ctx.font = "30px Arial";
   ctx.fillText(`${leftScore} : ${rightScore}`, 50, 50);
@@ -128,8 +140,8 @@ function onFrame(time) {
 
   const oldLeftPaddleY = leftPaddleY;
   const oldRightPaddleY = rightPaddleY;
-  oldBallX = ballX;
-  oldBallY = ballY;
+  oldBallPositions[oldBallPositionIndex] = [ballX, ballY];
+  oldBallPositionIndex = (oldBallPositionIndex + 1) % OLD_BALL_POSITION_COUNT;
 
   if (pressedKeys.has("KeyD")) {
     leftPowershotness = Math.min(leftPowershotness + deltaTime * 0.0005, 1);
@@ -176,7 +188,7 @@ function onFrame(time) {
     HIT_SOUND.volume = Math.max(leftPowershotness, 0.1);
     HIT_SOUND.play();
     spin -= Math.sign(leftPaddleY - oldLeftPaddleY);
-    velocityX = -velocityX + 0.1 + leftPowershotness;
+    velocityX = -velocityX + 0.2 + leftPowershotness;
     leftPowershotness = 0;
   }
   if (
@@ -188,7 +200,7 @@ function onFrame(time) {
     HIT_SOUND.volume = Math.max(rightPowershotness, 0.1);
     HIT_SOUND.play();
     spin -= Math.sign(rightPaddleY - oldRightPaddleY);
-    velocityX = -velocityX - 0.1 - rightPowershotness;
+    velocityX = -velocityX - 0.2 - rightPowershotness;
     rightPowershotness = 0;
   }
 
