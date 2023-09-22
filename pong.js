@@ -169,8 +169,8 @@ function onFrame(time) {
   ballX += velocityX * deltaTime;
   ballY += velocityY * deltaTime;
   if (ballY <= BALL_RADIUS && velocityY < 0) {
-    velocityX -= spin * 0.5;
-    spin *= 0.5;
+    velocityX -= spin * 0.7;
+    spin *= 0.3;
     velocityY *= -1;
   }
   if (ballY >= canvas.height - BALL_RADIUS && velocityY > 0) {
