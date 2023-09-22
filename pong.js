@@ -103,18 +103,21 @@ function onFrame(time) {
   if (deltaTime > 500) deltaTime = 0;
   previousTime = time;
 
-  if (pressedKeys.has("ArrowLeft")) {
-    rightPowershotness += Math.min(deltaTime * 0.0005, 1);
-  } else {
-    if (pressedKeys.has("ArrowUp")) rightPaddleY -= deltaTime * PIXELS_PER_MS;
-    if (pressedKeys.has("ArrowDown")) rightPaddleY += deltaTime * PIXELS_PER_MS;
-  }
+  const oldLeftPaddleY = leftPaddleY;
+  const oldRightPaddleY = rightPaddleY;
 
   if (pressedKeys.has("KeyD")) {
     leftPowershotness += Math.min(deltaTime * 0.0005, 1);
   } else {
     if (pressedKeys.has("KeyW")) leftPaddleY -= deltaTime * PIXELS_PER_MS;
     if (pressedKeys.has("KeyS")) leftPaddleY += deltaTime * PIXELS_PER_MS;
+  }
+
+  if (pressedKeys.has("ArrowLeft")) {
+    rightPowershotness += Math.min(deltaTime * 0.0005, 1);
+  } else {
+    if (pressedKeys.has("ArrowUp")) rightPaddleY -= deltaTime * PIXELS_PER_MS;
+    if (pressedKeys.has("ArrowDown")) rightPaddleY += deltaTime * PIXELS_PER_MS;
   }
 
   leftPaddleY = Math.min(
@@ -141,6 +144,7 @@ function onFrame(time) {
     velocityX < 0
   ) {
     velocityX = -velocityX + 0.5 + leftPowershotness * 0.5;
+    velocityY += Math.sign(leftPaddleY - oldLeftPaddleY) / 3;
     leftPowershotness = 0;
   }
   if (
@@ -150,6 +154,7 @@ function onFrame(time) {
     velocityX > 0
   ) {
     velocityX = -velocityX - 0.5 - rightPowershotness * 0.5;
+    velocityY += Math.sign(rightPaddleY - oldRightPaddleY) / 3;
     rightPowershotness = 0;
   }
 
