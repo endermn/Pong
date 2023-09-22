@@ -56,8 +56,6 @@ let rightPowershotness;
 let leftScore = 0;
 let rightScore = 0;
 
-let oldBallX = ballX;
-let oldBallY;
 let spin;
 
 let oldBallPositions = Array(OLD_BALL_POSITION_COUNT).fill([ballX, ballY]);
@@ -100,20 +98,10 @@ function draw() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let i = 0; i < OLD_BALL_POSITION_COUNT; i++) {
-    const positionIndex = (oldBallPositionIndex + i) % OLD_BALL_POSITION_COUNT;
     setColor(lerpColor(rgb("202833"), rgb("ee8888"), (i + 1) / OLD_BALL_POSITION_COUNT));
+    const positionIndex = (oldBallPositionIndex + i) % OLD_BALL_POSITION_COUNT;
     fillCricle(oldBallPositions[positionIndex], BALL_RADIUS);
   }
-  /*ctx.beginPath();
-  ctx.arc(
-    oldBallX - velocityX * 20,
-    oldBallY - velocityY * 20,
-    BALL_RADIUS,
-    0,
-    Math.PI * 2,
-    false
-  );
-  ctx.fill();*/
 
   setColor(rgb("ffffff"));
   fillCricle([ballX, ballY], BALL_RADIUS);
