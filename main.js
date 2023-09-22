@@ -1,19 +1,16 @@
 "use strict";
 
-import { rgb, lerp, zip, lerpColor, setColor } from "./draw";
-
-console.log(rgb);
+import {
+  rgb,
+  lerpColor,
+  setColor,
+  getPaddleColor,
+  fillCircle,
+} from "./colors.js";
 
 const canvas = document.getElementById("canvasId");
 const ctx = canvas.getContext("2d");
 const pressedKeys = new Set();
-
-const X = 0;
-const Y = 1;
-
-const R = 0;
-const G = 1;
-const B = 2;
 
 const PIXELS_PER_MS = 0.5;
 const BALL_RADIUS = 14;
@@ -61,17 +58,7 @@ function resetGame() {
 
 resetGame();
 
-function getPaddleColor(powershotness) {
-  return lerpColor(rgb("ffffff"), rgb("ff0000"), powershotness);
-}
-
 let previousTime = 0;
-
-function fillCricle(pos, radius) {
-  ctx.beginPath();
-  ctx.arc(pos[X], pos[Y], radius, 0, Math.PI * 2, false);
-  ctx.fill();
-}
 
 function draw() {
   setColor(rgb("202833"), ctx);
@@ -87,11 +74,11 @@ function draw() {
       ctx
     );
     const positionIndex = (oldBallPositionIndex + i) % OLD_BALL_POSITION_COUNT;
-    fillCricle(oldBallPositions[positionIndex], BALL_RADIUS);
+    fillCircle(oldBallPositions[positionIndex], BALL_RADIUS, ctx);
   }
 
   setColor(rgb("ffffff"), ctx);
-  fillCricle([ballX, ballY], BALL_RADIUS);
+  fillCircle([ballX, ballY], BALL_RADIUS, ctx);
 
   setColor(getPaddleColor(leftPowershotness), ctx);
   ctx.fillRect(0, leftPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT);
@@ -106,19 +93,27 @@ function draw() {
   setColor(rgb("ffffff"), ctx);
   ctx.font = "30px Arial";
   ctx.fillText(`${leftScore} : ${rightScore}`, 50, 50);
-  ctx.fillText(spin, 250, 50);
+  ctx.fillText(velocityX, 250, 50);
 }
 
 function paddleMove(deltaTime) {
+  const deltaTimeMultiplier = 0.0005;
+
   if (pressedKeys.has("KeyD")) {
-    leftPowershotness = Math.min(leftPowershotness + deltaTime * 0.0005, 1);
+    leftPowershotness = Math.min(
+      leftPowershotness + deltaTime * deltaTimeMultiplier,
+      1
+    );
   } else {
     if (pressedKeys.has("KeyW")) leftPaddleY -= deltaTime * PIXELS_PER_MS;
     if (pressedKeys.has("KeyS")) leftPaddleY += deltaTime * PIXELS_PER_MS;
   }
 
   if (pressedKeys.has("ArrowLeft")) {
-    rightPowershotness = Math.min(rightPowershotness + deltaTime * 0.0005, 1);
+    rightPowershotness = Math.min(
+      rightPowershotness + deltaTime * deltaTimeMultiplier,
+      1
+    );
   } else {
     if (pressedKeys.has("ArrowUp")) rightPaddleY -= deltaTime * PIXELS_PER_MS;
     if (pressedKeys.has("ArrowDown")) rightPaddleY += deltaTime * PIXELS_PER_MS;
@@ -134,6 +129,7 @@ function paddleMove(deltaTime) {
 }
 
 function onHit(oldLeftPaddleY, oldRightPaddleY) {
+  let ballAcceleration = 0.4;
   if (
     ballX - BALL_RADIUS <= PADDLE_WIDTH &&
     ballY - BALL_RADIUS < leftPaddleY + PADDLE_HEIGHT &&
@@ -143,7 +139,7 @@ function onHit(oldLeftPaddleY, oldRightPaddleY) {
     HIT_SOUND.volume = Math.max(leftPowershotness, 0.1);
     HIT_SOUND.play();
     spin -= Math.sign(leftPaddleY - oldLeftPaddleY);
-    velocityX = -velocityX + 0.4 + leftPowershotness;
+    velocityX = -velocityX + ballAcceleration + leftPowershotness;
     leftPowershotness = 0;
   }
   if (
@@ -155,20 +151,22 @@ function onHit(oldLeftPaddleY, oldRightPaddleY) {
     HIT_SOUND.volume = Math.max(rightPowershotness, 0.1);
     HIT_SOUND.play();
     spin -= Math.sign(rightPaddleY - oldRightPaddleY);
-    velocityX = -velocityX - 0.4 - rightPowershotness;
+    velocityX = -velocityX - ballAcceleration - rightPowershotness;
     rightPowershotness = 0;
   }
 }
 
 function onCornerHit() {
+  const wallVelocityMultiplier = 0.7;
+  const wallSpinMultiplier = 0.3;
   if (ballY <= BALL_RADIUS && velocityY < 0) {
-    velocityX -= spin * 0.7;
-    spin *= 0.3;
+    velocityX -= spin * wallVelocityMultiplier;
+    spin *= wallSpinMultiplier;
     velocityY *= -1;
   }
   if (ballY >= canvas.height - BALL_RADIUS && velocityY > 0) {
-    velocityX += spin * 0.7;
-    spin *= 0.3;
+    velocityX += spin * wallVelocityMultiplier;
+    spin *= wallSpinMultiplier;
     velocityY *= -1;
   }
 }
@@ -199,7 +197,8 @@ function onFrame(time) {
   oldBallPositionIndex = (oldBallPositionIndex + 1) % OLD_BALL_POSITION_COUNT;
 
   paddleMove(deltaTime);
-
+  if (velocityX > 0 && velocityX < 0.3) velocityX = 0.3;
+  if (velocityX < 0 && velocityX > -0.3) velocityX = -0.3;
   ballX += velocityX * deltaTime;
   ballY += velocityY * deltaTime;
 
@@ -210,7 +209,7 @@ function onFrame(time) {
   velocityX -= (deltaTime / 2000) * velocityX * Math.abs(velocityX);
   velocityY -=
     (deltaTime / 2000) * (velocityY * Math.abs(velocityY) - spin * 2);
-  spin -= (deltaTime / 100) * spin * Math.abs(spin);
+  spin -= (deltaTime / 200) * spin * 0.5 * Math.abs(spin);
 
   checkGameState();
 
