@@ -98,7 +98,9 @@ function draw() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let i = 0; i < OLD_BALL_POSITION_COUNT; i++) {
-    setColor(lerpColor(rgb("202833"), rgb("ee8888"), (i + 1) / OLD_BALL_POSITION_COUNT));
+    setColor(
+      lerpColor(rgb("202833"), rgb("ee8888"), (i + 1) / OLD_BALL_POSITION_COUNT)
+    );
     const positionIndex = (oldBallPositionIndex + i) % OLD_BALL_POSITION_COUNT;
     fillCricle(oldBallPositions[positionIndex], BALL_RADIUS);
   }
