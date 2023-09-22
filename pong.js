@@ -52,6 +52,10 @@ let rightPowershotness;
 let leftScore = 0;
 let rightScore = 0;
 
+let oldBallX = ballX;
+let oldBallY;
+let spin;
+
 function resetGame() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -66,6 +70,8 @@ function resetGame() {
 
   leftPowershotness = 0;
   rightPowershotness = 0;
+
+  spin = 0;
 }
 
 resetGame();
@@ -94,6 +100,17 @@ function draw() {
     PADDLE_HEIGHT
   );
 
+  setColor(rgb("888888"));
+  ctx.beginPath();
+  ctx.arc(
+    oldBallX - velocityX * 20,
+    oldBallY - velocityY * 20,
+    BALL_RADIUS,
+    0,
+    Math.PI * 2,
+    false
+  );
+  ctx.fill();
   setColor(rgb("ffffff"));
   ctx.beginPath();
   ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2, false);
@@ -101,6 +118,7 @@ function draw() {
 
   ctx.font = "30px Arial";
   ctx.fillText(`${leftScore} : ${rightScore}`, 50, 50);
+  ctx.fillText(spin, 250, 50);
 }
 
 function onFrame(time) {
@@ -110,16 +128,18 @@ function onFrame(time) {
 
   const oldLeftPaddleY = leftPaddleY;
   const oldRightPaddleY = rightPaddleY;
+  oldBallX = ballX;
+  oldBallY = ballY;
 
   if (pressedKeys.has("KeyD")) {
-    leftPowershotness += Math.min(deltaTime * 0.0005, 1);
+    leftPowershotness = Math.min(leftPowershotness + deltaTime * 0.0005, 1);
   } else {
     if (pressedKeys.has("KeyW")) leftPaddleY -= deltaTime * PIXELS_PER_MS;
     if (pressedKeys.has("KeyS")) leftPaddleY += deltaTime * PIXELS_PER_MS;
   }
 
   if (pressedKeys.has("ArrowLeft")) {
-    rightPowershotness += Math.min(deltaTime * 0.0005, 1);
+    rightPowershotness = Math.min(rightPowershotness + deltaTime * 0.0005, 1);
   } else {
     if (pressedKeys.has("ArrowUp")) rightPaddleY -= deltaTime * PIXELS_PER_MS;
     if (pressedKeys.has("ArrowDown")) rightPaddleY += deltaTime * PIXELS_PER_MS;
@@ -136,11 +156,16 @@ function onFrame(time) {
 
   ballX += velocityX * deltaTime;
   ballY += velocityY * deltaTime;
-  if (
-    (ballY <= BALL_RADIUS && velocityY < 0) ||
-    (ballY >= canvas.height - BALL_RADIUS && velocityY > 0)
-  )
-    velocityY *= -1.48;
+  if (ballY <= BALL_RADIUS && velocityY < 0) {
+    velocityX -= spin * 0.5;
+    spin *= 0.5;
+    velocityY *= -1;
+  }
+  if (ballY >= canvas.height - BALL_RADIUS && velocityY > 0) {
+    velocityX += spin * 0.7;
+    spin *= 0.3;
+    velocityY *= -1;
+  }
 
   if (
     ballX - BALL_RADIUS <= PADDLE_WIDTH &&
@@ -148,10 +173,10 @@ function onFrame(time) {
     ballY + BALL_RADIUS > leftPaddleY &&
     velocityX < 0
   ) {
-    HIT_SOUND.volume = Math.min(Math.max(leftPowershotness, 0.1), 1);
+    HIT_SOUND.volume = Math.max(leftPowershotness, 0.1);
     HIT_SOUND.play();
-    velocityX = -velocityX + 0.5 + leftPowershotness * 0.5;
-    velocityY += Math.sign(leftPaddleY - oldLeftPaddleY) / 3;
+    spin -= Math.sign(leftPaddleY - oldLeftPaddleY);
+    velocityX = -velocityX + 0.1 + leftPowershotness;
     leftPowershotness = 0;
   }
   if (
@@ -160,15 +185,17 @@ function onFrame(time) {
     ballY + BALL_RADIUS > rightPaddleY &&
     velocityX > 0
   ) {
-    HIT_SOUND.volume = Math.min(Math.max(rightPowershotness, 0.1), 1);
+    HIT_SOUND.volume = Math.max(rightPowershotness, 0.1);
     HIT_SOUND.play();
-    velocityX = -velocityX - 0.5 - rightPowershotness * 0.5;
-    velocityY += Math.sign(rightPaddleY - oldRightPaddleY) / 3;
+    spin -= Math.sign(rightPaddleY - oldRightPaddleY);
+    velocityX = -velocityX - 0.1 - rightPowershotness;
     rightPowershotness = 0;
   }
 
   velocityX -= (deltaTime / 2000) * velocityX * Math.abs(velocityX);
-  velocityY -= (deltaTime / 2000) * velocityY * Math.abs(velocityY);
+  velocityY -=
+    (deltaTime / 2000) * (velocityY * Math.abs(velocityY) - spin * 2);
+  spin -= (deltaTime / 200) * spin * Math.abs(spin);
 
   if (ballX < 0) {
     rightScore++;
