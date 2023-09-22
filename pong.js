@@ -136,16 +136,7 @@ function draw() {
   ctx.fillText(spin, 250, 50);
 }
 
-function onFrame(time) {
-  let deltaTime = time - (previousTime ?? time);
-  if (deltaTime > 500) deltaTime = 0;
-  previousTime = time;
-
-  const oldLeftPaddleY = leftPaddleY;
-  const oldRightPaddleY = rightPaddleY;
-  oldBallPositions[oldBallPositionIndex] = [ballX, ballY];
-  oldBallPositionIndex = (oldBallPositionIndex + 1) % OLD_BALL_POSITION_COUNT;
-
+function paddleMove(deltaTime) {
   if (pressedKeys.has("KeyD")) {
     leftPowershotness = Math.min(leftPowershotness + deltaTime * 0.0005, 1);
   } else {
@@ -159,7 +150,6 @@ function onFrame(time) {
     if (pressedKeys.has("ArrowUp")) rightPaddleY -= deltaTime * PIXELS_PER_MS;
     if (pressedKeys.has("ArrowDown")) rightPaddleY += deltaTime * PIXELS_PER_MS;
   }
-
   leftPaddleY = Math.min(
     Math.max(leftPaddleY, 0),
     canvas.height - PADDLE_HEIGHT
@@ -168,20 +158,9 @@ function onFrame(time) {
     Math.max(rightPaddleY, 0),
     canvas.height - PADDLE_HEIGHT
   );
+}
 
-  ballX += velocityX * deltaTime;
-  ballY += velocityY * deltaTime;
-  if (ballY <= BALL_RADIUS && velocityY < 0) {
-    velocityX -= spin * 0.7;
-    spin *= 0.3;
-    velocityY *= -1;
-  }
-  if (ballY >= canvas.height - BALL_RADIUS && velocityY > 0) {
-    velocityX += spin * 0.7;
-    spin *= 0.3;
-    velocityY *= -1;
-  }
-
+function onHit(oldLeftPaddleY, oldRightPaddleY) {
   if (
     ballX - BALL_RADIUS <= PADDLE_WIDTH &&
     ballY - BALL_RADIUS < leftPaddleY + PADDLE_HEIGHT &&
@@ -206,12 +185,28 @@ function onFrame(time) {
     velocityX = -velocityX - 0.4 - rightPowershotness;
     rightPowershotness = 0;
   }
+}
 
-  velocityX -= (deltaTime / 2000) * velocityX * Math.abs(velocityX);
-  velocityY -=
-    (deltaTime / 2000) * (velocityY * Math.abs(velocityY) - spin * 2);
-  spin -= (deltaTime / 200) * spin * Math.abs(spin);
+function onCornerHit() {
+  if (ballY <= BALL_RADIUS && velocityY < 0) {
+    velocityX -= spin * 0.7;
+    spin *= 0.3;
+    velocityY *= -1;
+  }
+  if (ballY >= canvas.height - BALL_RADIUS && velocityY > 0) {
+    velocityX += spin * 0.7;
+    spin *= 0.3;
+    velocityY *= -1;
+  }
+}
+function getDeltaTime(time) {
+  let deltaTime = time - (previousTime ?? time);
+  if (deltaTime > 500) deltaTime = 0;
+  previousTime = time;
+  return deltaTime;
+}
 
+function checkGameState() {
   if (ballX < 0) {
     rightScore++;
     resetGame();
@@ -219,8 +214,35 @@ function onFrame(time) {
     leftScore++;
     resetGame();
   }
+}
+
+function onFrame(time) {
+  let deltaTime = getDeltaTime(time);
+
+  const oldLeftPaddleY = leftPaddleY;
+  const oldRightPaddleY = rightPaddleY;
+
+  oldBallPositions[oldBallPositionIndex] = [ballX, ballY];
+  oldBallPositionIndex = (oldBallPositionIndex + 1) % OLD_BALL_POSITION_COUNT;
+
+  paddleMove(deltaTime);
+
+  ballX += velocityX * deltaTime;
+  ballY += velocityY * deltaTime;
+
+  onCornerHit();
+
+  onHit(oldLeftPaddleY, oldRightPaddleY);
+
+  velocityX -= (deltaTime / 2000) * velocityX * Math.abs(velocityX);
+  velocityY -=
+    (deltaTime / 2000) * (velocityY * Math.abs(velocityY) - spin * 2);
+  spin -= (deltaTime / 100) * spin * Math.abs(spin);
+
+  checkGameState();
 
   draw();
+
   window.requestAnimationFrame(onFrame);
 }
 
