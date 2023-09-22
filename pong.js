@@ -36,6 +36,7 @@ const PIXELS_PER_MS = 0.5;
 const BALL_RADIUS = 14;
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 110;
+const HIT_SOUND = new Audio("hit_sound.wav");
 
 let leftPaddleY;
 let rightPaddleY;
@@ -74,6 +75,10 @@ function getPaddleColor(powershotness) {
 }
 
 let previousTime = 0;
+
+function pause() {
+  while (true) {}
+}
 
 function draw() {
   setColor(rgb("202833"));
@@ -139,6 +144,8 @@ function onFrame(time) {
     ballY + BALL_RADIUS > leftPaddleY &&
     velocityX < 0
   ) {
+    HIT_SOUND.volume = Math.min(Math.max(leftPowershotness, 0.1), 1);
+    HIT_SOUND.play();
     velocityX = -velocityX + 0.5 + leftPowershotness * 0.5;
     leftPowershotness = 0;
   }
@@ -148,6 +155,8 @@ function onFrame(time) {
     ballY + BALL_RADIUS > rightPaddleY &&
     velocityX > 0
   ) {
+    HIT_SOUND.volume = Math.min(Math.max(rightPowershotness, 0.1), 1);
+    HIT_SOUND.play();
     velocityX = -velocityX - 0.5 - rightPowershotness * 0.5;
     rightPowershotness = 0;
   }
