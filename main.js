@@ -1,15 +1,12 @@
 "use strict";
+
+import { rgb, lerp, zip, lerpColor, setColor } from "./draw";
+
+console.log(rgb);
+
 const canvas = document.getElementById("canvasId");
 const ctx = canvas.getContext("2d");
 const pressedKeys = new Set();
-
-function lerp(a, b, alpha) {
-  return a + alpha * (b - a);
-}
-
-function zip(a, b) {
-  return a.map((e, i) => [e, b[i]]);
-}
 
 const X = 0;
 const Y = 1;
@@ -17,23 +14,6 @@ const Y = 1;
 const R = 0;
 const G = 1;
 const B = 2;
-
-function lerpColor(a, b, alpha) {
-  return zip(a, b).map((x) => lerp(x[0], x[1], alpha));
-}
-
-function rgb(str) {
-  return [
-    parseInt(str.slice(0, 2), 16),
-    parseInt(str.slice(2, 4), 16),
-    parseInt(str.slice(4, 6), 16),
-  ];
-}
-
-function setColor(color) {
-  ctx.fillStyle =
-    "rgba(" + color[R] + ", " + color[G] + ", " + color[B] + ", 1)";
-}
 
 const PIXELS_PER_MS = 0.5;
 const BALL_RADIUS = 14;
@@ -94,23 +74,28 @@ function fillCricle(pos, radius) {
 }
 
 function draw() {
-  setColor(rgb("202833"));
+  setColor(rgb("202833"), ctx);
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let i = 0; i < OLD_BALL_POSITION_COUNT; i++) {
     setColor(
-      lerpColor(rgb("202833"), rgb("ee8888"), (i + 1) / OLD_BALL_POSITION_COUNT)
+      lerpColor(
+        rgb("202833"),
+        rgb("ee8888"),
+        (i + 1) / OLD_BALL_POSITION_COUNT
+      ),
+      ctx
     );
     const positionIndex = (oldBallPositionIndex + i) % OLD_BALL_POSITION_COUNT;
     fillCricle(oldBallPositions[positionIndex], BALL_RADIUS);
   }
 
-  setColor(rgb("ffffff"));
+  setColor(rgb("ffffff"), ctx);
   fillCricle([ballX, ballY], BALL_RADIUS);
 
-  setColor(getPaddleColor(leftPowershotness));
+  setColor(getPaddleColor(leftPowershotness), ctx);
   ctx.fillRect(0, leftPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT);
-  setColor(getPaddleColor(rightPowershotness));
+  setColor(getPaddleColor(rightPowershotness), ctx);
   ctx.fillRect(
     canvas.width - PADDLE_WIDTH,
     rightPaddleY,
@@ -118,7 +103,7 @@ function draw() {
     PADDLE_HEIGHT
   );
 
-  setColor(rgb("ffffff"));
+  setColor(rgb("ffffff"), ctx);
   ctx.font = "30px Arial";
   ctx.fillText(`${leftScore} : ${rightScore}`, 50, 50);
   ctx.fillText(spin, 250, 50);
