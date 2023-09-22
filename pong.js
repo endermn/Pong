@@ -99,16 +99,6 @@ function draw() {
   setColor(rgb("202833"));
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  setColor(getPaddleColor(leftPowershotness));
-  ctx.fillRect(0, leftPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT);
-  setColor(getPaddleColor(rightPowershotness));
-  ctx.fillRect(
-    canvas.width - PADDLE_WIDTH,
-    rightPaddleY,
-    PADDLE_WIDTH,
-    PADDLE_HEIGHT
-  );
-
   for (let i = 0; i < OLD_BALL_POSITION_COUNT; i++) {
     const positionIndex = (oldBallPositionIndex + i) % OLD_BALL_POSITION_COUNT;
     setColor(
@@ -130,6 +120,17 @@ function draw() {
   setColor(rgb("ffffff"));
   fillCricle([ballX, ballY], BALL_RADIUS);
 
+  setColor(getPaddleColor(leftPowershotness));
+  ctx.fillRect(0, leftPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT);
+  setColor(getPaddleColor(rightPowershotness));
+  ctx.fillRect(
+    canvas.width - PADDLE_WIDTH,
+    rightPaddleY,
+    PADDLE_WIDTH,
+    PADDLE_HEIGHT
+  );
+
+  setColor(rgb("ffffff"));
   ctx.font = "30px Arial";
   ctx.fillText(`${leftScore} : ${rightScore}`, 50, 50);
   ctx.fillText(spin, 250, 50);
@@ -171,8 +172,8 @@ function onFrame(time) {
   ballX += velocityX * deltaTime;
   ballY += velocityY * deltaTime;
   if (ballY <= BALL_RADIUS && velocityY < 0) {
-    velocityX -= spin * 0.5;
-    spin *= 0.5;
+    velocityX -= spin * 0.7;
+    spin *= 0.3;
     velocityY *= -1;
   }
   if (ballY >= canvas.height - BALL_RADIUS && velocityY > 0) {
