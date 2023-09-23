@@ -87,7 +87,6 @@ class Game {
     colors.setColor(colors.rgb("ffffff"), ctx);
     ctx.font = "30px Arial";
     ctx.fillText(`${leftScore} : ${rightScore}`, 50, 50);
-    ctx.fillText(velocityX, 250, 50);
   }
   paddleMove(deltaTime) {
     const deltaTimeMultiplier = 0.0005;
