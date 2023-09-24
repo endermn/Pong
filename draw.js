@@ -1,0 +1,31 @@
+import { X, Y, WIDTH, HEIGHT } from "./vector.js";
+import { R, G, B } from "./colors.js";
+
+export default class Canvas {
+  constructor(canvas) {
+    this.ctx = canvas.getContext("2d");
+  }
+
+  #setColor(color) {
+    this.ctx.fillStyle =
+      "rgba(" + color[R] + ", " + color[G] + ", " + color[B] + ", 1)";
+  }
+
+  fillRect(pos, size, color) {
+    this.#setColor(color);
+		this.ctx.fillRect(pos[X], pos[Y], size[WIDTH], size[HEIGHT]);
+  }
+  
+  fillCircle(pos, radius, color) {
+    this.#setColor(color);
+    this.ctx.beginPath();
+    this.ctx.arc(pos[X], pos[Y], radius, 0, Math.PI * 2, false);
+    this.ctx.fill();
+  }
+
+  fillText(pos, text, font, color) {
+    this.#setColor(color);
+    this.ctx.font = font;
+    this.ctx.fillText(text, pos[X], pos[Y]);
+  }
+}
