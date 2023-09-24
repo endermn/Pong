@@ -21,6 +21,7 @@ export default class Game {
     this.score = [0, 0];
     this.oldBallPositionIndex = 0;
     this.reset();
+    this.oldBallPositions = Array(OLD_BALL_POSITION_COUNT).fill(this.ballPos);
   }
 
   reset() {
@@ -31,7 +32,6 @@ export default class Game {
     this.paddleYs = vrep((this.size[HEIGHT] - PADDLE_SIZE[HEIGHT]) / 2, 2);
 
     this.ballPos = vmul(this.size, vrep(.5, 2));
-    this.oldBallPositions = Array(OLD_BALL_POSITION_COUNT).fill(this.ballPos);
 
     const startAngle = Math.random() * 2 * Math.PI;
     this.ballVelocity = [Math.cos(startAngle) / 2, Math.sin(startAngle) / 2];
