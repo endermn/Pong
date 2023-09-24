@@ -10,8 +10,9 @@ const PIXELS_PER_MS = 0.5;
 const BALL_RADIUS = 14;
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 110;
-const HIT_SOUND = new Audio("hit_sound.wav");
 const OLD_BALL_POSITION_COUNT = 20;
+
+const HIT_SOUND = new Audio("hit_sound.wav");
 
 let leftPaddleY;
 let rightPaddleY;
@@ -31,12 +32,13 @@ let spin;
 
 let oldBallPositions = Array(OLD_BALL_POSITION_COUNT).fill([ballX, ballY]);
 let oldBallPositionIndex = 0;
+
 let previousTime = 0;
 
 const colors = new Colors();
 
 class Game {
-  resetGame() {
+  reset() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
@@ -180,7 +182,7 @@ class Game {
 }
 
 const game = new Game();
-game.resetGame();
+game.reset();
 
 function onFrame(time) {
   let deltaTime = game.getDeltaTime(time);
@@ -192,6 +194,7 @@ function onFrame(time) {
   oldBallPositionIndex = (oldBallPositionIndex + 1) % OLD_BALL_POSITION_COUNT;
 
   game.paddleMove(deltaTime);
+
   if (velocityX > 0 && velocityX < 0.3) velocityX = 0.3;
   if (velocityX < 0 && velocityX > -0.3) velocityX = -0.3;
   ballX += velocityX * deltaTime;
