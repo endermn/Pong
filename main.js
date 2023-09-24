@@ -173,10 +173,10 @@ class Game {
   checkGameState() {
     if (ballX < 0) {
       rightScore++;
-      this.resetGame();
+      this.reset();
     } else if (ballX > canvas.width) {
       leftScore++;
-      this.resetGame();
+      this.reset();
     }
   }
 }
