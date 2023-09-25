@@ -13,7 +13,7 @@ export default class Canvas {
 
   fillRect(pos, size, color) {
     this.#setColor(color);
-		this.ctx.fillRect(pos[X], pos[Y], size[WIDTH], size[HEIGHT]);
+    this.ctx.fillRect(pos[X], pos[Y], size[WIDTH], size[HEIGHT]);
   }
   
   fillCircle(pos, radius, color) {
@@ -23,9 +23,10 @@ export default class Canvas {
     this.ctx.fill();
   }
 
-  fillText(pos, text, font, color) {
+  fillText(pos, text, font, color, align = "left") {
     this.#setColor(color);
     this.ctx.font = font;
+    this.ctx.textAlign = align;
     this.ctx.fillText(text, pos[X], pos[Y]);
   }
 }

@@ -8,7 +8,7 @@ const RIGHT = 1;
 const PIXELS_PER_MS = 0.5;
 const BALL_RADIUS = 14;
 const PADDLE_SIZE = [20, 110];
-const OLD_BALL_POSITION_COUNT = 20;
+const OLD_BALL_POSITION_COUNT = 10;
 
 function getPaddleColor(powershotness) {
   return lerpColor(rgb("ffffff"), rgb("ff0000"), powershotness);
@@ -28,6 +28,8 @@ export default class Game {
     this.size = [window.innerWidth, window.innerHeight];
     this.canvas.width = this.size[WIDTH];
     this.canvas.height = this.size[HEIGHT];
+
+    this.paddleShakenesses = [0, 0];
 
     this.paddleYs = vrep((this.size[HEIGHT] - PADDLE_SIZE[HEIGHT]) / 2, 2);
 
@@ -54,14 +56,20 @@ export default class Game {
 
     ctx.fillCircle(this.ballPos, BALL_RADIUS, rgb("ffffff"));
 
+    const shakeOffsets = this.paddleShakenesses.map(s => [0, 0].map(_ => (Math.random() - .5) * 30 * s));
+
     const paddleColors = this.powershotnesses.map(getPaddleColor);
-    ctx.fillRect([0, this.paddleYs[LEFT]], PADDLE_SIZE, paddleColors[LEFT]);
+    ctx.fillRect(vadd([0, this.paddleYs[LEFT]], shakeOffsets[LEFT]), PADDLE_SIZE, paddleColors[LEFT]);
 
     const rightPaddlePos = [this.size[WIDTH] - PADDLE_SIZE[WIDTH], this.paddleYs[RIGHT]];
-    ctx.fillRect(rightPaddlePos, PADDLE_SIZE, paddleColors[RIGHT]);
+    ctx.fillRect(vadd(rightPaddlePos, shakeOffsets[RIGHT]), PADDLE_SIZE, paddleColors[RIGHT]);
 
-    const scoreText = `${this.score[LEFT]} : ${this.score[RIGHT]}`;
-    ctx.fillText([50, 50], scoreText, "30px Arial", rgb("ffffff"));
+    const centerX = this.size[WIDTH] / 2;
+    const SCORE_Y = 60;
+    const FONT = "50px Arial";
+    ctx.fillText([centerX, SCORE_Y], ":", FONT, rgb("ffffff"), "center");
+    ctx.fillText([centerX - 15, SCORE_Y], this.score[LEFT], FONT, rgb("ffffff"), "right");
+    ctx.fillText([centerX + 15, SCORE_Y], this.score[RIGHT], FONT, rgb("ffffff"), "left");
   }
 
   movePaddles(pressedKeys, deltaTime) {
@@ -96,6 +104,7 @@ export default class Game {
       this.hitSound.play();
       this.spin -= Math.sign(this.paddleYs[LEFT] - oldPaddleYs[LEFT]);
       this.ballVelocity = [-this.ballVelocity[X] + ballAcceleration + this.powershotnesses[LEFT], this.ballVelocity[Y]];
+      this.paddleShakenesses = [0.3 + this.powershotnesses[LEFT], this.paddleShakenesses[RIGHT]];
       this.powershotnesses = [0, this.powershotnesses[RIGHT]];
     }
     if (
@@ -108,6 +117,7 @@ export default class Game {
       this.hitSound.play();
       this.spin -= Math.sign(this.paddleYs[RIGHT] - oldPaddleYs[RIGHT]);
       this.ballVelocity = [-this.ballVelocity[X] - ballAcceleration - this.powershotnesses[RIGHT], this.ballVelocity[Y]];
+      this.paddleShakenesses = [this.paddleShakenesses[LEFT], 0.3 + this.powershotnesses[RIGHT]];
       this.powershotnesses = [this.powershotnesses[LEFT], 0];
     }
   }
@@ -136,6 +146,7 @@ export default class Game {
 
     this.oldBallPositions[this.oldBallPositionIndex] = this.ballPos;
     this.oldBallPositionIndex = (this.oldBallPositionIndex + 1) % OLD_BALL_POSITION_COUNT;
+    this.paddleShakenesses = this.paddleShakenesses.map(s => Math.max(s - deltaTime / 500, 0));
 
     this.movePaddles(pressedKeys, deltaTime);
 
@@ -156,10 +167,10 @@ export default class Game {
     this.spin -= (deltaTime / 200) * this.spin * 0.5 * Math.abs(this.spin);
 
     if (this.ballPos[X] < 0) {
-      this.score = vadd(this.score, [1, 0]);
+      this.score = vadd(this.score, [0, 1]);
       this.reset();
     } else if (this.ballPos[X] > this.size[WIDTH]) {
-      this.score = vadd(this.score, [0, 1]);
+      this.score = vadd(this.score, [1, 0]);
       this.reset();
     }
   }
