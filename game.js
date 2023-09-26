@@ -26,6 +26,9 @@ export default class Game {
 
   reset() {
     this.dashCooldowns = [0, 0];
+    this.downness = [0, 0];
+    this.hasDashed = [0, 0];
+    this.oldPaddlesY = [0, 0];
 
     this.size = [window.innerWidth, window.innerHeight];
     this.canvas.width = this.size[WIDTH];
@@ -46,6 +49,18 @@ export default class Game {
   }
 
   drawPaddle(ctx, side, shakeOffset, paddleColor, x) {
+    if (this.hasDashed[side] > 0) {
+      for (let i = 0; i < 50; i++) {
+        ctx.fillRect(
+          vadd(
+            [x, this.oldPaddlesY[side] + i * this.downness[side] * 2],
+            shakeOffset
+          ),
+          PADDLE_SIZE,
+          lerpColor(rgb("202833"), rgb("ffffff"), i / 50)
+        );
+      }
+    }
     if (this.dashCooldowns[side] > 0)
       ctx.strokeRect(
         vadd([x, this.paddleYs[side]], shakeOffset),
@@ -108,7 +123,7 @@ export default class Game {
     );
   }
 
-  movePaddles(pressedKeys, deltaTime) {
+  movePaddles(pressedKeys, deltaTime, ctx) {
     const c = zipMany([
       this.powershotnesses,
       this.paddleYs,
@@ -117,6 +132,8 @@ export default class Game {
       ["KeyS", "ArrowDown"],
       ["KeyQ", "ArrowRight"],
       this.dashCooldowns,
+      this.hasDashed,
+      this.oldPaddlesY,
     ]).map(
       ([
         powershotness,
@@ -126,26 +143,41 @@ export default class Game {
         downKey,
         dashKey,
         dashCooldown,
+        hasDashed,
+        oldPaddlesY,
       ]) => {
+        let downness = 0;
         if (pressedKeys.has(powershotKey)) {
           powershotness = Math.min(powershotness + deltaTime * 0.0005, 1);
         } else {
-          const downness = pressedKeys.has(downKey) - pressedKeys.has(upKey);
+          downness = pressedKeys.has(downKey) - pressedKeys.has(upKey);
           let deltaY = downness * deltaTime * PIXELS_PER_MS;
           if (pressedKeys.has(dashKey) && dashCooldown == 0 && downness != 0) {
             deltaY *= 40;
             dashCooldown = 1;
+            hasDashed = 1;
+            oldPaddlesY = paddleY;
           }
           const maxPaddleY = this.size[HEIGHT] - PADDLE_SIZE[HEIGHT];
           paddleY = Math.min(Math.max(paddleY + deltaY, 0), maxPaddleY);
         }
-        return [powershotness, paddleY, dashCooldown];
+        return [
+          powershotness,
+          paddleY,
+          dashCooldown,
+          downness,
+          hasDashed,
+          oldPaddlesY,
+        ];
       }
     );
     // [[lPS, lPY], [rPS, rPY]] => [[lPS, rPS], [lPY, rPY]]
     this.powershotnesses = c.map(([powershotness, _1, _2]) => powershotness);
     this.paddleYs = c.map(([_1, paddleY, _2]) => paddleY);
     this.dashCooldowns = c.map(([_1, _2, cooldown]) => cooldown);
+    this.downness = c.map((x) => x[3]);
+    this.hasDashed = c.map((x) => x[4]);
+    this.oldPaddlesY = c.map((x) => x[5]);
   }
 
   hitPaddles(oldPaddleYs) {
@@ -216,7 +248,6 @@ export default class Game {
 
   update(pressedKeys, deltaTime) {
     const oldPaddleYs = this.paddleYs;
-
     this.oldBallPositions[this.oldBallPositionIndex] = this.ballPos;
     this.oldBallPositionIndex =
       (this.oldBallPositionIndex + 1) % OLD_BALL_POSITION_COUNT;
@@ -227,6 +258,10 @@ export default class Game {
 
     this.dashCooldowns = this.dashCooldowns.map((cooldown) =>
       Math.max(cooldown - deltaTime / 3000, 0)
+    );
+
+    this.hasDashed = this.hasDashed.map((hasDashed) =>
+      Math.max(hasDashed - deltaTime / 500, 0)
     );
 
     this.movePaddles(pressedKeys, deltaTime);
