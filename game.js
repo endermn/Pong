@@ -161,7 +161,7 @@ export default class Game {
       this.hitSound.play();
       this.spin -= Math.sign(this.paddleYs[LEFT] - oldPaddleYs[LEFT]);
       this.ballVelocity = [
-        -this.ballVelocity[X] + ballAcceleration + this.powershotnesses[LEFT],
+        -this.ballVelocity[X] + ballAcceleration + this.powershotnesses[LEFT]*1.5,
         this.ballVelocity[Y],
       ];
       this.paddleShakenesses = [
@@ -181,7 +181,7 @@ export default class Game {
       this.hitSound.play();
       this.spin -= Math.sign(this.paddleYs[RIGHT] - oldPaddleYs[RIGHT]);
       this.ballVelocity = [
-        -this.ballVelocity[X] - ballAcceleration - this.powershotnesses[RIGHT],
+        -this.ballVelocity[X] - ballAcceleration - this.powershotnesses[RIGHT]*1.5,
         this.ballVelocity[Y],
       ];
       this.paddleShakenesses = [
