@@ -52,7 +52,7 @@ export default class Game {
     if (this.hasDashed[side] > 0) {
       for (let i = 0; i < 50; i++) {
         ctx.fillRect(
-          vadd(
+          vadd(w
             [x, this.oldPaddlesY[side] + i * this.downness[side] * 2],
             shakeOffset
           ),
