@@ -115,7 +115,15 @@ export default class Game {
       this.paddles[RIGHT].powershotness = 0;
     }
   }
-
+  checkGameState() {
+    if (this.ballPos[X] < 0) {
+      this.score = vadd(this.score, [0, 1]);
+      this.reset();
+    } else if (this.ballPos[X] > this.size[WIDTH]) {
+      this.score = vadd(this.score, [1, 0]);
+      this.reset();
+    }
+  }
   hitTopAndBottom() {
     const wallVelocityMultiplier = 0.7;
     const wallSpinMultiplier = 0.3;
@@ -182,14 +190,7 @@ export default class Game {
           (this.ballVelocity[Y] * Math.abs(this.ballVelocity[Y]) -
             this.spin * 2),
     ];
+    this.checkGameState();
     this.spin -= (deltaTime / 200) * this.spin * 0.5 * Math.abs(this.spin);
-
-    if (this.ballPos[X] < 0) {
-      this.score = vadd(this.score, [0, 1]);
-      this.reset();
-    } else if (this.ballPos[X] > this.size[WIDTH]) {
-      this.score = vadd(this.score, [1, 0]);
-      this.reset();
-    }
   }
 }

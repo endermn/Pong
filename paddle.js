@@ -19,7 +19,7 @@ export class Paddle {
   update(deltaTime, height, downness, chargePressed, dashPressed) {
     this.shakeness = Math.max(this.shakeness - deltaTime / 500, 0);
     this.dashCooldown = Math.max(this.dashCooldown - deltaTime / 3000, 0);
-    
+
     if (chargePressed) {
       this.powershotness = Math.min(this.powershotness + deltaTime * 0.0005, 1);
     } else {
@@ -34,7 +34,9 @@ export class Paddle {
   }
 
   draw(ctx, x) {
-    const shakeOffset = [0, 0].map((_) => (Math.random() - 0.5) * 30 * this.shakeness);
+    const shakeOffset = [0, 0].map(
+      (_) => (Math.random() - 0.5) * 30 * this.shakeness
+    );
     const color = lerpColor(rgb("ffffff"), rgb("ff0000"), this.powershotness);
 
     if (this.dashCooldown > 0)
