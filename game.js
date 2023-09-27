@@ -1,18 +1,13 @@
 import { zipMany } from "./util.js";
 import { X, Y, WIDTH, HEIGHT, vrep, vadd, vmul } from "./vector.js";
 import { rgb, lerpColor } from "./colors.js";
+import { Paddle, SIZE as PADDLE_SIZE } from "./paddle.js";
 
 const LEFT = 0;
 const RIGHT = 1;
 
-const PIXELS_PER_MS = 0.5;
 const BALL_RADIUS = 14;
-const PADDLE_SIZE = [20, 110];
 const OLD_BALL_POSITION_COUNT = 10;
-
-function getPaddleColor(powershotness) {
-  return lerpColor(rgb("ffffff"), rgb("ff0000"), powershotness);
-}
 
 export default class Game {
   constructor(canvas) {
@@ -20,59 +15,27 @@ export default class Game {
     this.hitSound = new Audio("hit_sound.wav");
     this.score = [0, 0];
     this.oldBallPositionIndex = 0;
+    this.paddles = [new Paddle(), new Paddle()];
     this.reset();
     this.oldBallPositions = Array(OLD_BALL_POSITION_COUNT).fill(this.ballPos);
   }
 
   reset() {
     this.dashCooldowns = [0, 0];
-    this.downness = [0, 0];
-    this.hasDashed = [0, 0];
-    this.oldPaddlesY = [0, 0];
 
     this.size = [window.innerWidth, window.innerHeight];
     this.canvas.width = this.size[WIDTH];
     this.canvas.height = this.size[HEIGHT];
 
-    this.paddleShakenesses = [0, 0];
-
-    this.paddleYs = vrep((this.size[HEIGHT] - PADDLE_SIZE[HEIGHT]) / 2, 2);
+    for (const side of [LEFT, RIGHT])
+      this.paddles[side].reset((this.size[HEIGHT] - PADDLE_SIZE[HEIGHT]) / 2);
 
     this.ballPos = vmul(this.size, vrep(0.5, 2));
 
     const startAngle = Math.random() * 2 * Math.PI;
     this.ballVelocity = [Math.cos(startAngle) / 2, Math.sin(startAngle) / 2];
 
-    this.powershotnesses = [0, 0];
-
     this.spin = 0;
-  }
-
-  drawPaddle(ctx, side, shakeOffset, paddleColor, x) {
-    if (this.hasDashed[side] > 0) {
-      for (let i = 0; i < 50; i++) {
-        ctx.fillRect(
-          vadd(w
-            [x, this.oldPaddlesY[side] + i * this.downness[side] * 2],
-            shakeOffset
-          ),
-          PADDLE_SIZE,
-          lerpColor(rgb("202833"), rgb("ffffff"), i / 50)
-        );
-      }
-    }
-    if (this.dashCooldowns[side] > 0)
-      ctx.strokeRect(
-        vadd([x, this.paddleYs[side]], shakeOffset),
-        vmul(PADDLE_SIZE, [1, this.dashCooldowns[side]]),
-        rgb("F28500"),
-        10
-      );
-    ctx.fillRect(
-      vadd([x, this.paddleYs[side]], shakeOffset),
-      PADDLE_SIZE,
-      paddleColor
-    );
   }
 
   draw(ctx) {
@@ -88,20 +51,8 @@ export default class Game {
 
     ctx.fillCircle(this.ballPos, BALL_RADIUS, rgb("ffffff"));
 
-    const shakeOffsets = this.paddleShakenesses.map((s) =>
-      [0, 0].map((_) => (Math.random() - 0.5) * 30 * s)
-    );
-    const paddleColors = this.powershotnesses.map(getPaddleColor);
-
-    this.drawPaddle(ctx, LEFT, shakeOffsets[LEFT], paddleColors[LEFT], 0);
-    const rightPaddleX = this.size[WIDTH] - PADDLE_SIZE[WIDTH];
-    this.drawPaddle(
-      ctx,
-      RIGHT,
-      shakeOffsets[RIGHT],
-      paddleColors[RIGHT],
-      rightPaddleX
-    );
+    this.paddles[LEFT].draw(ctx, 0);
+    this.paddles[RIGHT].draw(ctx, this.size[WIDTH] - PADDLE_SIZE[WIDTH]);
 
     const centerX = this.size[WIDTH] / 2;
     const SCORE_Y = 60;
@@ -123,104 +74,45 @@ export default class Game {
     );
   }
 
-  movePaddles(pressedKeys, deltaTime, ctx) {
-    const c = zipMany([
-      this.powershotnesses,
-      this.paddleYs,
-      ["KeyD", "ArrowLeft"],
-      ["KeyW", "ArrowUp"],
-      ["KeyS", "ArrowDown"],
-      ["KeyQ", "ArrowRight"],
-      this.dashCooldowns,
-      this.hasDashed,
-      this.oldPaddlesY,
-    ]).map(
-      ([
-        powershotness,
-        paddleY,
-        powershotKey,
-        upKey,
-        downKey,
-        dashKey,
-        dashCooldown,
-        hasDashed,
-        oldPaddlesY,
-      ]) => {
-        let downness = 0;
-        if (pressedKeys.has(powershotKey)) {
-          powershotness = Math.min(powershotness + deltaTime * 0.0005, 1);
-        } else {
-          downness = pressedKeys.has(downKey) - pressedKeys.has(upKey);
-          let deltaY = downness * deltaTime * PIXELS_PER_MS;
-          if (pressedKeys.has(dashKey) && dashCooldown == 0 && downness != 0) {
-            deltaY *= 40;
-            dashCooldown = 1;
-            hasDashed = 1;
-            oldPaddlesY = paddleY;
-          }
-          const maxPaddleY = this.size[HEIGHT] - PADDLE_SIZE[HEIGHT];
-          paddleY = Math.min(Math.max(paddleY + deltaY, 0), maxPaddleY);
-        }
-        return [
-          powershotness,
-          paddleY,
-          dashCooldown,
-          downness,
-          hasDashed,
-          oldPaddlesY,
-        ];
-      }
-    );
-    // [[lPS, lPY], [rPS, rPY]] => [[lPS, rPS], [lPY, rPY]]
-    this.powershotnesses = c.map(([powershotness, _1, _2]) => powershotness);
-    this.paddleYs = c.map(([_1, paddleY, _2]) => paddleY);
-    this.dashCooldowns = c.map(([_1, _2, cooldown]) => cooldown);
-    this.downness = c.map((x) => x[3]);
-    this.hasDashed = c.map((x) => x[4]);
-    this.oldPaddlesY = c.map((x) => x[5]);
-  }
-
   hitPaddles(oldPaddleYs) {
     const ballAcceleration = 0.4;
     if (
       this.ballPos[X] - BALL_RADIUS <= PADDLE_SIZE[WIDTH] &&
       this.ballPos[Y] - BALL_RADIUS <
-        this.paddleYs[LEFT] + PADDLE_SIZE[HEIGHT] &&
-      this.ballPos[Y] + BALL_RADIUS > this.paddleYs[LEFT] &&
+        this.paddles[LEFT].y + PADDLE_SIZE[HEIGHT] &&
+      this.ballPos[Y] + BALL_RADIUS > this.paddles[LEFT].y &&
       this.ballVelocity[X] < 0
     ) {
-      this.hitSound.volume = Math.max(this.powershotnesses[LEFT], 0.1);
+      this.hitSound.volume = Math.max(this.paddles[LEFT].powershotness, 0.1);
       this.hitSound.play();
-      this.spin -= Math.sign(this.paddleYs[LEFT] - oldPaddleYs[LEFT]);
+      this.spin -= Math.sign(this.paddles[LEFT].y - oldPaddleYs[LEFT]);
       this.ballVelocity = [
-        -this.ballVelocity[X] + ballAcceleration + this.powershotnesses[LEFT],
+        -this.ballVelocity[X] +
+          ballAcceleration +
+          this.paddles[LEFT].powershotness * 1.5,
         this.ballVelocity[Y],
       ];
-      this.paddleShakenesses = [
-        0.3 + this.powershotnesses[LEFT],
-        this.paddleShakenesses[RIGHT],
-      ];
-      this.powershotnesses = [0, this.powershotnesses[RIGHT]];
+      this.paddles[LEFT].shakeness = 0.3 + this.paddles[LEFT].powershotness;
+      this.paddles[LEFT].powershotness = 0;
     }
     if (
       this.ballPos[X] + BALL_RADIUS >= this.size[WIDTH] - PADDLE_SIZE[WIDTH] &&
       this.ballPos[Y] - BALL_RADIUS <
-        this.paddleYs[RIGHT] + PADDLE_SIZE[HEIGHT] &&
-      this.ballPos[Y] + BALL_RADIUS > this.paddleYs[RIGHT] &&
+        this.paddles[RIGHT].y + PADDLE_SIZE[HEIGHT] &&
+      this.ballPos[Y] + BALL_RADIUS > this.paddles[RIGHT].y &&
       this.ballVelocity[X] > 0
     ) {
-      this.hitSound.volume = Math.max(this.powershotnesses[RIGHT], 0.1);
+      this.hitSound.volume = Math.max(this.paddles[RIGHT].powershotness, 0.1);
       this.hitSound.play();
-      this.spin -= Math.sign(this.paddleYs[RIGHT] - oldPaddleYs[RIGHT]);
+      this.spin -= Math.sign(this.paddles[RIGHT].y - oldPaddleYs[RIGHT]);
       this.ballVelocity = [
-        -this.ballVelocity[X] - ballAcceleration - this.powershotnesses[RIGHT],
+        -this.ballVelocity[X] -
+          ballAcceleration -
+          this.paddles[RIGHT].powershotness * 1.5,
         this.ballVelocity[Y],
       ];
-      this.paddleShakenesses = [
-        this.paddleShakenesses[LEFT],
-        0.3 + this.powershotnesses[RIGHT],
-      ];
-      this.powershotnesses = [this.powershotnesses[LEFT], 0];
+      this.paddles[RIGHT].shakeness = 0.3 + this.paddles[RIGHT].powershotness;
+      this.paddles[RIGHT].powershotness = 0;
     }
   }
 
@@ -247,24 +139,25 @@ export default class Game {
   }
 
   update(pressedKeys, deltaTime) {
-    const oldPaddleYs = this.paddleYs;
+    const oldPaddleYs = this.paddles.map((p) => p.y);
     this.oldBallPositions[this.oldBallPositionIndex] = this.ballPos;
     this.oldBallPositionIndex =
       (this.oldBallPositionIndex + 1) % OLD_BALL_POSITION_COUNT;
 
-    this.paddleShakenesses = this.paddleShakenesses.map((s) =>
-      Math.max(s - deltaTime / 500, 0)
+    this.paddles[LEFT].update(
+      deltaTime,
+      this.size[HEIGHT],
+      pressedKeys.has("KeyS") - pressedKeys.has("KeyW"),
+      pressedKeys.has("KeyD"),
+      pressedKeys.has("KeyQ")
     );
-
-    this.dashCooldowns = this.dashCooldowns.map((cooldown) =>
-      Math.max(cooldown - deltaTime / 3000, 0)
+    this.paddles[RIGHT].update(
+      deltaTime,
+      this.size[HEIGHT],
+      pressedKeys.has("ArrowDown") - pressedKeys.has("ArrowUp"),
+      pressedKeys.has("ArrowLeft"),
+      pressedKeys.has("ArrowRight")
     );
-
-    this.hasDashed = this.hasDashed.map((hasDashed) =>
-      Math.max(hasDashed - deltaTime / 500, 0)
-    );
-
-    this.movePaddles(pressedKeys, deltaTime);
 
     if (this.ballVelocity[X] > 0 && this.ballVelocity[X] < 0.3)
       this.ballVelocity = [0.3, this.ballVelocity[Y]];
