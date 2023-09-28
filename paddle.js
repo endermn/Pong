@@ -1,14 +1,10 @@
-import { X, Y, WIDTH, HEIGHT, vrep, vadd, vmul } from "./vector.js";
+import { WIDTH, HEIGHT, vadd, vmul } from "./vector.js";
 import { rgb, lerpColor } from "./colors.js";
 
 const PIXELS_PER_MS = 0.5;
 export const SIZE = [20, 110];
 
 export class Paddle {
-  /*constructor() {
-    this.reset();
-  }*/
-
   reset(y) {
     this.y = y;
     this.dashCooldown = 0;
