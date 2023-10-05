@@ -1,4 +1,3 @@
-import { zipMany } from "./util.js";
 import { X, Y, WIDTH, HEIGHT, vrep, vadd, vmul } from "./vector.js";
 import { rgb, lerpColor } from "./colors.js";
 import { Paddle, SIZE as PADDLE_SIZE } from "./paddle.js";
@@ -121,6 +120,11 @@ export default class Game {
       this.reset();
     } else if (this.ballPos[X] > this.size[WIDTH]) {
       this.score = vadd(this.score, [1, 0]);
+      this.reset();
+    }
+    if (this.score[LEFT] >= 5 || this.score[RIGHT] >= 5) {
+      this.score[LEFT] = 0;
+      this.score[RIGHT] = 0;
       this.reset();
     }
   }
