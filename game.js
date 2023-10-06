@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import { X, Y, WIDTH, HEIGHT, vrep, vadd, vmul } from "./vector.js";
-import { rgb, lerpColor } from "./colors.js";
-=======
 import { X, Y, WIDTH, HEIGHT, vadd } from "./vector.js";
 import { rgb } from "./colors.js";
->>>>>>> d17d001120275501827c84718346fa3075e01fc9
 import { Paddle, SIZE as PADDLE_SIZE } from "./paddle.js";
 import { Ball, RADIUS as BALL_RADIUS } from "./ball.js";
 
@@ -101,14 +96,12 @@ export default class Game {
       this.#reset();
     } else if (this.ball.pos[X] > this.size[WIDTH]) {
       this.score = vadd(this.score, [1, 0]);
-      this.reset();
+      this.#reset();
     }
-    if (this.score[LEFT] >= 5 || this.score[RIGHT] >= 5) {
-      this.score[LEFT] = 0;
-      this.score[RIGHT] = 0;
-      this.reset();
-    }
+    if (this.score[LEFT] >= 5 || this.score[RIGHT] >= 5)
+      this.score = [0, 0];
   }
+
   hitTopAndBottom() {
     const wallVelocityMultiplier = 0.7;
     const wallSpinMultiplier = 0.3;
