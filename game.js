@@ -6,6 +6,9 @@ import { Ball, RADIUS as BALL_RADIUS } from "./ball.js";
 const LEFT = 0;
 const RIGHT = 1;
 
+let winner = 0;
+let initialWinner = winner;
+
 export default class Game {
   constructor(canvas) {
     this.canvas = canvas;
@@ -24,7 +27,7 @@ export default class Game {
     for (const side of [LEFT, RIGHT])
       this.paddles[side].reset((this.size[HEIGHT] - PADDLE_SIZE[HEIGHT]) / 2);
 
-    this.ball.reset(this.size.map(x => x / 2));
+    this.ball.reset(this.size.map((x) => x / 2));
   }
 
   draw(ctx) {
@@ -36,6 +39,7 @@ export default class Game {
     this.paddles[RIGHT].draw(ctx, this.size[WIDTH] - PADDLE_SIZE[WIDTH]);
 
     const centerX = this.size[WIDTH] / 2;
+    const centerY = this.size[HEIGHT] / 2;
     const SCORE_Y = 60;
     const FONT = "50px Arial";
 
@@ -46,6 +50,17 @@ export default class Game {
 
     const rightScorePos = [centerX + 15, SCORE_Y];
     ctx.fillText(rightScorePos, this.score[RIGHT], FONT, rgb("ffffff"), "left");
+    if (winner > 0 && winner < 3) {
+      ctx.fillText(
+        [centerX, centerY - 15],
+        `Player ${Math.ceil(winner)} won`,
+        FONT,
+        rgb("ffffff"),
+        "center"
+      );
+      if (winner > initialWinner - 0.9) winner -= 0.005;
+      else winner = 0;
+    }
   }
 
   #hitPaddles(oldPaddleYs) {
@@ -98,8 +113,21 @@ export default class Game {
       this.score = vadd(this.score, [1, 0]);
       this.#reset();
     }
-    if (this.score[LEFT] >= 5 || this.score[RIGHT] >= 5)
+
+    const winScore = 1;
+
+    if (this.score[LEFT] >= winScore) {
       this.score = [0, 0];
+      // left player won
+      winner = 1;
+      initialWinner = winner;
+    }
+    if (this.score[RIGHT] >= winScore) {
+      this.score = [0, 0];
+      // right player won
+      winner = 2;
+      initialWinner = winner;
+    }
   }
 
   hitTopAndBottom() {
