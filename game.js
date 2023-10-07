@@ -161,7 +161,7 @@ export default class Game {
       this.size[HEIGHT],
       pressedKeys.has("KeyS") - pressedKeys.has("KeyW"),
       pressedKeys.has("KeyD"),
-      pressedKeys.has("KeyQ")
+      pressedKeys.has("KeyA")
     );
     this.paddles[RIGHT].update(
       deltaTime,
