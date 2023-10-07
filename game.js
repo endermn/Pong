@@ -6,8 +6,7 @@ import { Ball, RADIUS as BALL_RADIUS } from "./ball.js";
 const LEFT = 0;
 const RIGHT = 1;
 
-let winner = 0;
-let initialWinner = winner;
+const WIN_SCORE = 11;
 
 export default class Game {
   constructor(canvas) {
@@ -16,6 +15,7 @@ export default class Game {
     this.score = [0, 0];
     this.paddles = [new Paddle(), new Paddle()];
     this.ball = new Ball();
+    this.winner = undefined;
     this.#reset();
   }
 
@@ -50,17 +50,14 @@ export default class Game {
 
     const rightScorePos = [centerX + 15, SCORE_Y];
     ctx.fillText(rightScorePos, this.score[RIGHT], FONT, rgb("ffffff"), "left");
-    if (winner > 0 && winner < 3) {
+    if (this.winner !== undefined)
       ctx.fillText(
         [centerX, centerY - 15],
-        `Player ${Math.ceil(winner)} won`,
+        `Player ${this.winner.player} won`,
         FONT,
         rgb("ffffff"),
         "center"
       );
-      if (winner > initialWinner - 0.9) winner -= 0.005;
-      else winner = 0;
-    }
   }
 
   #hitPaddles(oldPaddleYs) {
@@ -114,19 +111,15 @@ export default class Game {
       this.#reset();
     }
 
-    const winScore = 1;
-
-    if (this.score[LEFT] >= winScore) {
+    if (this.score[LEFT] >= WIN_SCORE) {
       this.score = [0, 0];
       // left player won
-      winner = 1;
-      initialWinner = winner;
+      this.winner = { player: 1, timeLeft: 1000 };
     }
-    if (this.score[RIGHT] >= winScore) {
+    if (this.score[RIGHT] >= WIN_SCORE) {
       this.score = [0, 0];
       // right player won
-      winner = 2;
-      initialWinner = winner;
+      this.winner = { player: 2, timeLeft: 1000 };
     }
   }
 
@@ -176,5 +169,11 @@ export default class Game {
     this.#hitPaddles(oldPaddleYs);
 
     this.#checkGameState();
+    
+    if (this.winner !== undefined) {
+      this.winner.timeLeft -= deltaTime;
+      if (this.winner.timeLeft <= 0)
+        this.winner = undefined;
+    }
   }
 }
