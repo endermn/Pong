@@ -19,15 +19,26 @@ export default class Game {
     this.#reset();
   }
 
-  #reset() {
-    this.size = [window.innerWidth, window.innerHeight];
-    this.canvas.width = this.size[WIDTH];
-    this.canvas.height = this.size[HEIGHT];
-
+  #resetPoint() {
     for (const side of [LEFT, RIGHT])
       this.paddles[side].reset((this.size[HEIGHT] - PADDLE_SIZE[HEIGHT]) / 2);
 
     this.ball.reset(this.size.map((x) => x / 2));
+  }
+
+  async #reset() {
+    this.size = [window.innerWidth, window.innerHeight];
+    this.canvas.width = this.size[WIDTH];
+    this.canvas.height = this.size[HEIGHT];
+
+    this.#resetPoint();
+    this.score = [0, 0];
+
+    const response = await fetch("http://localhost:8088");
+    const json = await response.json();
+    this.type = json.type;
+    this.serverAddr = json.server_addr;
+    console.log(json);
   }
 
   draw(ctx) {
@@ -105,19 +116,19 @@ export default class Game {
   #checkGameState() {
     if (this.ball.pos[X] < 0) {
       this.score = vadd(this.score, [0, 1]);
-      this.#reset();
+      this.#resetPoint();
     } else if (this.ball.pos[X] > this.size[WIDTH]) {
       this.score = vadd(this.score, [1, 0]);
-      this.#reset();
+      this.#resetPoint();
     }
 
     if (this.score[LEFT] >= WIN_SCORE) {
-      this.score = [0, 0];
+      this.#reset();
       // left player won
       this.winner = { player: 1, timeLeft: 1000 };
     }
     if (this.score[RIGHT] >= WIN_SCORE) {
-      this.score = [0, 0];
+      this.#reset();
       // right player won
       this.winner = { player: 2, timeLeft: 1000 };
     }
