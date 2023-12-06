@@ -1,3 +1,19 @@
 {
-	"editor.tabSize": 2
+	"editor.tabSize": 4,
+	"prettier.trailingComma": "all",
+	"prettier.useTabs": true,
+	"prettier.tabWidth": 4,
+	"prettier.arrowParens": "avoid",
+	"prettier.printWidth": 100,
+	"css.format.newlineBetweenRules": false,
+	"css.format.newlineBetweenSelectors": false,
+	"less.format.newlineBetweenRules": false,
+	"less.format.newlineBetweenSelectors": false,
+	"scss.format.newlineBetweenRules": false,
+	"scss.format.newlineBetweenSelectors": false,
+	"html.format.contentUnformatted": "",
+	"html.format.extraLiners": "",
+	"files.insertFinalNewline": true,
+	"files.trimFinalNewlines": false,
+	"javascript.format.semicolons": "insert"
 }

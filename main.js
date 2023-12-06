@@ -11,15 +11,15 @@ let previousTime = 0;
 const game = new Game(canvas);
 
 function onFrame(time) {
-  let deltaTime = time - (previousTime ?? time);
-  if (deltaTime > 500) deltaTime = 0;
-  previousTime = time;
+	let deltaTime = time - (previousTime ?? time);
+	if (deltaTime > 500) deltaTime = 0;
+	previousTime = time;
 
-  game.update(pressedKeys, deltaTime);
+	game.update(pressedKeys, deltaTime);
 
-  game.draw(ctx);
+	game.draw(ctx);
 
-  window.requestAnimationFrame(onFrame);
+	window.requestAnimationFrame(onFrame);
 }
 
 document.addEventListener("keydown", e => pressedKeys.add(e.code));
