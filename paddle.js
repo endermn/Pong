@@ -47,13 +47,13 @@ export class Paddle {
 				if (this.dash) {
 					deltaY = downness * DASH_AMOUNT;
 					this.dashCooldown = 1;
-					this.dash = false;
 				} else {
 					this.dashHintY = clampY(this.y + downness * DASH_AMOUNT);
 				}
 			}
 			this.y = clampY(this.y + deltaY);
 		}
+		this.dash = false;
 	}
 
 	drawDashHint(ctx, x) {
