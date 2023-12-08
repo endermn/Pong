@@ -4,11 +4,12 @@ import Game from "./game.js";
 const canvas = document.getElementById("canvas");
 
 const ctx = new Canvas(canvas);
-const pressedKeys = new Set();
+const pressedKeys = new Set;
 
 let previousTime = 0;
 
-const game = new Game(canvas);
+const game = new Game;
+await game.init(canvas);
 
 function onFrame(time) {
 	let deltaTime = time - (previousTime ?? time);

@@ -9,11 +9,14 @@ const RIGHT = 1;
 const WIN_SCORE = 11;
 
 export default class Game {
-	constructor(canvas) {
+	async init(canvas) {
 		this.canvas = canvas;
-		this.hitSound = new Audio("hit_sound.wav");
+		const a = await fetch("./hit_sound.txt");
+		const buffer = await a.arrayBuffer();
+		const url = URL.createObjectURL(new Blob([buffer], {type: "audio/wav"}));
+		this.hitSound = new Audio(url);
 		this.paddles = [new Paddle(), new Paddle()];
-		this.ball = new Ball();
+		this.ball = new Ball;
 		this.winner = undefined;
 		this.#reset();
 	}
