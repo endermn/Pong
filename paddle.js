@@ -62,7 +62,7 @@ export class Paddle {
 	}
 
 	draw(ctx, x) {
-		const shakeOffset = [0, 0].map(_ => (Math.random() - 0.5) * 30 * this.shakeness);
+		const shakeOffset = [0, 0].map(_ => (Math.random() - 0.5) * 40 * this.shakeness);
 
 		if (this.dashCooldown > 0)
 			ctx.strokeRect(
