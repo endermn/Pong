@@ -132,6 +132,13 @@ export default class Game {
 		}
 	}
 
+	onKeyDown(key) {
+		if (key === "KeyE")
+			this.paddles[LEFT].toggleDashHint();
+		if (key === "Slash")
+			this.paddles[RIGHT].toggleDashHint();
+	}
+
 	update(pressedKeys, deltaTime) {
 		const oldPaddleYs = this.paddles.map(p => p.y);
 

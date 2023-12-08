@@ -22,7 +22,11 @@ function onFrame(time) {
 	window.requestAnimationFrame(onFrame);
 }
 
-document.addEventListener("keydown", e => pressedKeys.add(e.code));
+document.addEventListener("keydown", e => {
+	if (!e.repeat)
+		game.onKeyDown(e.code);
+	pressedKeys.add(e.code);
+});
 document.addEventListener("keyup", e => pressedKeys.delete(e.code));
 
 window.requestAnimationFrame(onFrame);

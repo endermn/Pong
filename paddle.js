@@ -6,6 +6,10 @@ const DASH_AMOUNT = 300;
 export const SIZE = [20, 110];
 
 export class Paddle {
+	constructor() {
+		this.dashHintEnabled = true;
+	}
+
 	reset(y) {
 		this.y = y;
 		this.dashCooldown = 0;
@@ -13,6 +17,10 @@ export class Paddle {
 		this.powershotness = 0;
 		this.dashHintY = undefined;
 		this.dashableBlinkTimeLeft = 0;
+	}
+
+	toggleDashHint() {
+		this.dashHintEnabled = !this.dashHintEnabled;
 	}
 
 	update(deltaTime, height, downness, chargePressed, dashPressed) {
@@ -47,7 +55,7 @@ export class Paddle {
 	}
 
 	drawDashHint(ctx, x) {
-		if (this.dashHintY !== undefined)
+		if (this.dashHintEnabled && this.dashHintY !== undefined)
 			ctx.fillRect([x, this.dashHintY], SIZE, rgb("606468"));
 	}
 
