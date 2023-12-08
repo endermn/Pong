@@ -12,7 +12,8 @@ const game = new Game(canvas);
 
 function onFrame(time) {
 	let deltaTime = time - (previousTime ?? time);
-	if (deltaTime > 500) deltaTime = 0;
+	if (deltaTime > 500)
+		deltaTime = 0;
 	previousTime = time;
 
 	game.update(pressedKeys, deltaTime);

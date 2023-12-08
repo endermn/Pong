@@ -33,11 +33,11 @@ export default class Game {
 		this.#resetPoint();
 		this.score = [0, 0];
 
-		const response = await fetch("http://localhost:8088");
+		/*const response = await fetch("http://localhost:8088");
 		const json = await response.json();
 		this.type = json.type;
 		this.serverAddr = json.server_addr;
-		console.log(json);
+		console.log(json);*/
 	}
 
 	draw(ctx) {
@@ -133,8 +133,12 @@ export default class Game {
 	}
 
 	onKeyDown(key) {
+		if (key === "KeyA")
+			this.paddles[LEFT].dash = true;
 		if (key === "KeyE")
 			this.paddles[LEFT].toggleDashHint();
+		if (key === "ArrowRight")
+			this.paddles[RIGHT].dash = true;
 		if (key === "Slash")
 			this.paddles[RIGHT].toggleDashHint();
 	}
@@ -147,14 +151,14 @@ export default class Game {
 			this.size[HEIGHT],
 			pressedKeys.has("KeyS") - pressedKeys.has("KeyW"),
 			pressedKeys.has("KeyD"),
-			pressedKeys.has("KeyA"),
+			//pressedKeys.has("KeyA"),
 		);
 		this.paddles[RIGHT].update(
 			deltaTime,
 			this.size[HEIGHT],
 			pressedKeys.has("ArrowDown") - pressedKeys.has("ArrowUp"),
 			pressedKeys.has("ArrowLeft"),
-			pressedKeys.has("ArrowRight"),
+			//pressedKeys.has("ArrowRight"),
 		);
 
 		this.ball.update(deltaTime, this.size[HEIGHT]);

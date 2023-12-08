@@ -17,13 +17,14 @@ export class Paddle {
 		this.powershotness = 0;
 		this.dashHintY = undefined;
 		this.dashableBlinkTimeLeft = 0;
+		this.dash = false;
 	}
 
 	toggleDashHint() {
 		this.dashHintEnabled = !this.dashHintEnabled;
 	}
 
-	update(deltaTime, height, downness, chargePressed, dashPressed) {
+	update(deltaTime, height, downness, chargePressed) {
 		this.shakeness = Math.max(this.shakeness - deltaTime / 500, 0);
 		this.dashableBlinkTimeLeft = Math.max(this.dashableBlinkTimeLeft - deltaTime, 0);
 		if (this.dashCooldown > 0) {
@@ -43,9 +44,10 @@ export class Paddle {
 		} else {
 			let deltaY = downness * deltaTime * PIXELS_PER_MS;
 			if (this.dashCooldown == 0 && downness != 0) {
-				if (dashPressed) {
+				if (this.dash) {
 					deltaY = downness * DASH_AMOUNT;
 					this.dashCooldown = 1;
+					this.dash = false;
 				} else {
 					this.dashHintY = clampY(this.y + downness * DASH_AMOUNT);
 				}
