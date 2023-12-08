@@ -7,6 +7,7 @@ const LEFT = 0;
 const RIGHT = 1;
 
 const WIN_SCORE = 11;
+const WIN_MARGIN = 2;
 
 export default class Game {
 	async init(canvas) {
@@ -28,7 +29,7 @@ export default class Game {
 		this.ball.reset(this.size.map(x => x / 2));
 	}
 
-	async #reset() {
+	#reset() {
 		this.size = [window.innerWidth, window.innerHeight];
 		this.canvas.width = this.size[WIDTH];
 		this.canvas.height = this.size[HEIGHT];
@@ -115,23 +116,24 @@ export default class Game {
 	}
 
 	#checkGameState() {
-		if (this.ball.pos[X] < 0) {
-			this.score = vadd(this.score, [0, 1]);
-			this.#resetPoint();
-		} else if (this.ball.pos[X] > this.size[WIDTH]) {
+		if (this.ball.pos[X] > this.size[WIDTH]) {
 			this.score = vadd(this.score, [1, 0]);
-			this.#resetPoint();
-		}
-
-		if (this.score[LEFT] >= WIN_SCORE) {
-			this.#reset();
-			// left player won
-			this.winner = { player: 1, timeLeft: 1000 };
-		}
-		if (this.score[RIGHT] >= WIN_SCORE) {
-			this.#reset();
-			// right player won
-			this.winner = { player: 2, timeLeft: 1000 };
+			if (this.score[LEFT] >= WIN_SCORE && this.score[LEFT] - this.score[RIGHT] >= WIN_MARGIN) {
+				this.#reset();
+				// left player won
+				this.winner = { player: 1, timeLeft: 1000 };
+			} else {
+				this.#resetPoint();
+			}
+		} else if (this.ball.pos[X] < 0) {
+			this.score = vadd(this.score, [0, 1]);
+			if (this.score[RIGHT] >= WIN_SCORE && this.score[RIGHT] - this.score[LEFT] >= WIN_MARGIN) {
+				this.#reset();
+				// right player won
+				this.winner = { player: 2, timeLeft: 1000 };
+			} else {
+				this.#resetPoint();
+			}
 		}
 	}
 
@@ -166,9 +168,9 @@ export default class Game {
 
 		this.ball.update(deltaTime, this.size[HEIGHT]);
 
-		this.#hitPaddles(oldPaddleYs);
-
 		this.#checkGameState();
+
+		this.#hitPaddles(oldPaddleYs);
 
 		if (this.winner !== undefined) {
 			this.winner.timeLeft -= deltaTime;
