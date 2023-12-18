@@ -1,7 +1,8 @@
 import { X, Y, WIDTH, HEIGHT, vadd } from "./vector.js";
 import { rgb } from "./colors.js";
 import { Paddle, SIZE as PADDLE_SIZE } from "./paddle.js";
-import { Ball, RADIUS as BALL_RADIUS } from "./ball.js";
+import { Ball, RADIUS as BALL_RADIUS, RADIUS } from "./ball.js";
+import { PickupItem } from "./item.js";
 
 const LEFT = 0;
 const RIGHT = 1;
@@ -17,6 +18,7 @@ export default class Game {
 		const url = URL.createObjectURL(new Blob([buffer.slice(4)], {type: "audio/wav"}));
 		this.hitSound = new Audio(url);
 		this.paddles = [new Paddle(), new Paddle()];
+		this.pickup_item = new PickupItem();
 		this.ball = new Ball;
 		this.winner = undefined;
 		this.#reset();
@@ -50,6 +52,7 @@ export default class Game {
 		this.paddles[LEFT].drawDashHint(ctx, 0);
 		this.paddles[RIGHT].drawDashHint(ctx, this.size[WIDTH] - PADDLE_SIZE[WIDTH]);
 
+		this.pickup_item.draw(ctx);
 		this.ball.draw(ctx);
 
 		this.paddles[LEFT].draw(ctx, 0);
@@ -80,6 +83,11 @@ export default class Game {
 	#hitPaddles(oldPaddleYs) {
 		const ballAcceleration = 0.4;
 		const SPIN_MULTIPLIER = 2;
+
+		if(this.pickup_item.has_collision(this.ball.pos, RADIUS))
+			// ... DO SOMETHING
+			this.ball.spin *= SPIN_MULTIPLIER;
+
 
 		if (
 			this.ball.pos[X] - BALL_RADIUS <= PADDLE_SIZE[WIDTH] &&
