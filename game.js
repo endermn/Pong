@@ -13,8 +13,8 @@ const WIN_MARGIN = 2;
 export default class Game {
 	async init(canvas) {
 		this.canvas = canvas;
-		const a = await fetch("./hit_sound.txt");
-		const buffer = await a.arrayBuffer();
+		const response = await fetch("hit_sound.txt");
+		const buffer = await response.arrayBuffer();
 		const url = URL.createObjectURL(new Blob([buffer.slice(4)], {type: "audio/wav"}));
 		this.hitSound = new Audio(url);
 		this.paddles = [new Paddle(), new Paddle()];
