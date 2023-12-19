@@ -1,4 +1,4 @@
-import { X, Y, WIDTH, HEIGHT, vadd } from "./vector.js";
+import { X, Y, WIDTH, HEIGHT, vadd, vmul } from "./vector.js";
 import { rgb } from "./colors.js";
 import { Paddle, SIZE as PADDLE_SIZE } from "./paddle.js";
 import { Ball, RADIUS as BALL_RADIUS, RADIUS } from "./ball.js";
@@ -12,6 +12,7 @@ const WIN_MARGIN = 2;
 
 export default class Game {
 	async init(canvas) {
+		this.draw_item = true;
 		this.canvas = canvas;
 		const response = await fetch("hit_sound.txt");
 		const buffer = await response.arrayBuffer();
@@ -29,13 +30,14 @@ export default class Game {
 			this.paddles[side].reset((this.size[HEIGHT] - PADDLE_SIZE[HEIGHT]) / 2);
 
 		this.ball.reset(this.size.map(x => x / 2));
+		this.pickup_item.reset_pickup();
 	}
 
 	#reset() {
 		this.size = [window.innerWidth, window.innerHeight];
 		this.canvas.width = this.size[WIDTH];
 		this.canvas.height = this.size[HEIGHT];
-
+		this.pickup_item.reset_pickup();
 		this.#resetPoint();
 		this.score = [0, 0];
 
@@ -51,8 +53,8 @@ export default class Game {
 
 		this.paddles[LEFT].drawDashHint(ctx, 0);
 		this.paddles[RIGHT].drawDashHint(ctx, this.size[WIDTH] - PADDLE_SIZE[WIDTH]);
-
-		this.pickup_item.draw(ctx);
+		if(this.draw_item)
+			this.pickup_item.draw(ctx);
 		this.ball.draw(ctx);
 
 		this.paddles[LEFT].draw(ctx, 0);
@@ -86,7 +88,8 @@ export default class Game {
 
 		if(this.pickup_item.has_collision(this.ball.pos, RADIUS))
 			// ... DO SOMETHING
-			this.ball.spin *= SPIN_MULTIPLIER;
+			// this.ball.velocity = vmul(this.ball.velocity, [1.5, 1.5])
+			this.ball.velocity[Y] *= 0.5;
 
 
 		if (
@@ -136,24 +139,33 @@ export default class Game {
 		} else if (this.ball.pos[X] < 0) {
 			this.score = vadd(this.score, [0, 1]);
 			if (this.score[RIGHT] >= WIN_SCORE && this.score[RIGHT] - this.score[LEFT] >= WIN_MARGIN) {
-				this.#reset();
 				// right player won
+				this.#reset();
 				this.winner = { player: 2, timeLeft: 1000 };
 			} else {
 				this.#resetPoint();
 			}
 		}
+
 	}
 
 	onKeyDown(key) {
-		if (key === "KeyA")
+		switch(key) {
+		case "KeyA":
 			this.paddles[LEFT].dash = true;
-		if (key === "KeyE")
+			break;
+		case "KeyE":
 			this.paddles[LEFT].toggleDashHint();
-		if (key === "ArrowRight")
+			break;
+		case "ArrowRight":
 			this.paddles[RIGHT].dash = true;
-		if (key === "Slash")
+			break;
+		case "Slash":
 			this.paddles[RIGHT].toggleDashHint();
+			break;
+		default:
+			break;
+		}
 	}
 
 	update(pressedKeys, deltaTime) {
